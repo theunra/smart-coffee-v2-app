@@ -8,7 +8,10 @@ class SerialHandler:
         self.ser = Serial(port=port, baudrate=baud)
         self.is_run = False
 
+        # Callback function on serial data received
         self.onReceiveData = None
+        self.onReceiveDataArgs = ()
+
         self.thread_serial_listen = Thread(target=self.__listenSerial)
     
     def __read(self):
@@ -29,9 +32,19 @@ class SerialHandler:
         while(self.is_run):
             data = self.__read()
 
-            self.onReceiveData(data)
+            self.onReceiveData(*self.onReceiveDataArgs, data)
     
-    def startListening(self):
+    
+    def startListening(self, target = None, args = ()):
+        '''
+        Start a thread for listen (polling) serial data.
+        At valid data received from serial, callback onReceiveData(data) will be called
+        @param target , function - onReceiveData
+        @param args , function args
+        '''
+        self.onReceiveData = target
+        self.onReceiveDataArgs = args
+
         if(self.onReceiveData == None):
             raise Exception("onReceiveData callback is None, must provide function(data)")
         self.is_run = True
