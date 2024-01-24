@@ -2,6 +2,9 @@ import requests
 from random import randint
 from datetime import datetime
 from threading import Thread
+
+from lib.enose.enose import Enose
+
 import time
 
 class SmartCoffeeDevice:
@@ -12,6 +15,9 @@ class SmartCoffeeDevice:
         self.is_run = True
         self.is_send_data = False
         self.is_connected = False
+
+        self.enose = Enose()
+        self.enose.onPredictionDone(target=SmartCoffeeDevice.onEnosePredictionDone, args=(self,))
         
         self.LISTEN_TIMEOUT = 10 #s
 
@@ -23,9 +29,12 @@ class SmartCoffeeDevice:
         self.listen_event_thread = Thread(target=self.listenEventRoutine)
 
     def start(self):
-        self.connect()
+        status = self.connect()
+        if(status == False):
+            return
         self.send_data_thread.start()
         self.listen_event_thread.start()
+        self.enose.start()
 
         ## Main loop
         while(1):
@@ -39,6 +48,8 @@ class SmartCoffeeDevice:
                 print("[SmartCoffeeDevice] Wait for thread to complete...")
                 self.send_data_thread.join()
                 self.listen_event_thread.join()
+                print("[SmartCoffeeDevice] Stopping enose complete...")
+                self.enose.stop()
                 print("[SmartCoffeeDevice] exit")
                 break
     
@@ -51,11 +62,16 @@ class SmartCoffeeDevice:
                 "id" : self.device_id
                 }
         r = requests.post(self.device_api_addr, json = payload)
-        
-        if(r.json()['status'] == 200):
+
+        if(r.status_code == 200 and r.json()['status'] == 200):
             print("[SmartCoffeeDevice] Connected to " + r.url)
+        else:
+            print("[SmartCoffeeDevice] connection to server error , status code : ", r.status_code)
+            self.is_connected = False
+            return False
         
         self.is_connected = True
+        return True
 
     def listenEvent(self):
         r = requests.get(self.device_api_addr, params = {"param" : "event"}, timeout = self.LISTEN_TIMEOUT)
@@ -72,6 +88,9 @@ class SmartCoffeeDevice:
             return r.json()
         else:
             print("[SmartCoffeeDevice] sendSensorData : unhandled")
+
+    def onEnosePredictionDone(self, data):
+        print("[SmartCoffeeDevice] Prediction done : ", data)
 
     def handleEvent(self, event):
         try:

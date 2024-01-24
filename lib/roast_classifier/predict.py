@@ -37,7 +37,10 @@ class Predict:
     #     elif predictions == 3:
     #         return 'Dark'
     
-    def predict(self, input_array):
+    def predict(self, input_array) -> list:
+        """
+        @return predictions
+        """
         self.make_predictions(input_array)
         # predictions = convert(num_predictions)
         print("Predictions:", self.predictions)

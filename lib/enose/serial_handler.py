@@ -9,8 +9,8 @@ class SerialHandler:
         self.is_run = False
 
         # Callback function on serial data received
-        self.onReceiveData = None
-        self.onReceiveDataArgs = ()
+        self.__onReceiveData = None
+        self.__onReceiveDataArgs = ()
 
         self.thread_serial_listen = Thread(target=self.__listenSerial)
     
@@ -18,9 +18,14 @@ class SerialHandler:
         while self.is_run:
             if(self.ser.readable()):
                 payload = self.ser.readline()
-                data_json = json.loads(payload)
 
-                return data_json
+                try:
+                    data_json = json.loads(payload)
+
+                    return data_json
+                except json.decoder.JSONDecodeError as e:
+                    print("[SerialHandler] JSONDecodeError serial data is not a valid json : " + str(payload))
+                    return False
         
     def __write(self, payload):
         if(self.ser.writable()):
@@ -32,25 +37,30 @@ class SerialHandler:
         while(self.is_run):
             data = self.__read()
 
-            self.onReceiveData(*self.onReceiveDataArgs, data)
+            if(data):
+                self.__onReceiveData(*self.__onReceiveDataArgs, data)
     
     
     def startListening(self, target = None, args = ()):
         '''
         Start a thread for listen (polling) serial data.
-        At valid data received from serial, callback onReceiveData(data) will be called
-        @param target , function - onReceiveData
+        At valid data received from serial, callback __onReceiveData(data) will be called
+        @param target , function - __onReceiveData
         @param args , function args
         '''
-        self.onReceiveData = target
-        self.onReceiveDataArgs = args
+        self.__onReceiveData = target
+        self.__onReceiveDataArgs = args
 
-        if(self.onReceiveData == None):
-            raise Exception("onReceiveData callback is None, must provide function(data)")
+        if(self.__onReceiveData == None):
+            raise Exception("__onReceiveData callback is None, must provide function(data)")
         self.is_run = True
         self.thread_serial_listen.start()
 
-
+    def stopListening(self):
+        self.is_run = False
+        self.ser.close()
+        print("[SerialHandler] Stop")
+        
     @staticmethod
     def getPorts():
         ports = list(comports())
