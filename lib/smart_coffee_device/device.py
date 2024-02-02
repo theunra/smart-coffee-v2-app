@@ -202,11 +202,7 @@ class SmartCoffeeDevice:
         
         SmartCoffeeDevice.count = SmartCoffeeDevice.count + 1
 
-        SmartCoffeeDevice.status = int(SmartCoffeeDevice.count / 10)
-
-        print(SmartCoffeeDevice.count)
-        print(SmartCoffeeDevice.count / 10)
-        print(SmartCoffeeDevice.status)
+        SmartCoffeeDevice.status = int(SmartCoffeeDevice.count / 100)
 
         if(SmartCoffeeDevice.status > 4):
             SmartCoffeeDevice.status = 4
@@ -218,13 +214,13 @@ class SmartCoffeeDevice:
                 "roastStatus" : SmartCoffeeDevice.status,
                 "time" : datetime.utcnow().isoformat(),
                 "adc_mq135" : SmartCoffeeDevice.adc,
-                "adc_mq136" : 3,
-                "adc_mq137" : 13,
-                "adc_mq138" : 23,
-                "adc_mq2" : 53,
-                "adc_mq3" : 53,
-                "adc_tgs822" : 12,
-                "adc_tgs2620" : 14,
+                "adc_mq136" : SmartCoffeeDevice.adc - 2500,
+                "adc_mq137" : SmartCoffeeDevice.adc - 2500 * 2,
+                "adc_mq138" : SmartCoffeeDevice.adc - 2500 * 3,
+                "adc_mq2" : SmartCoffeeDevice.adc - 2500 * 4,
+                "adc_mq3" : SmartCoffeeDevice.adc - 2500 * 5,
+                "adc_tgs822" : SmartCoffeeDevice.adc - 2500 * 6,
+                "adc_tgs2620" : SmartCoffeeDevice.adc - 2500 * 7,
                 "temp" : 50,
                 "humidity": 32.4,
             }
