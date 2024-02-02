@@ -17,7 +17,7 @@ def testListenSerialData():
 
 class Enose:
     def __init__(self) -> None:
-        self.port = SerialHandler.findPort("ESP32")
+        self.port = SerialHandler.findPort("Intel")
         if(self.port == False):
             raise Exception("ESP32 port not found")
         

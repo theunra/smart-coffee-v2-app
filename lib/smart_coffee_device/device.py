@@ -7,14 +7,41 @@ from lib.enose.enose import Enose
 
 import time
 
+class SmartCoffeeRoast:
+    def __init__(self) -> None:
+        self.id = -1
+        self.beanType = ''
+        self.level = ''
+
+    def fromJSON(self, roast):
+        self.id = roast['id']
+        self.beanType = roast['beanType']
+        self.level = roast['level']
+
+class SmartCoffeeSession:
+    def __init__(self) -> None:
+        self.reset()
+
+    def reset(self):
+        self.id = -1
+        self.roastId = None
+
+    def fromJSON(self, roastSession):
+        self.id = roastSession['id']
+        self.roastId = roastSession['roastId']
+
 class SmartCoffeeDevice:
     def __init__(self) -> None:
         self.device_id = "77f04f7b-0ec0-4ce7-b8e7-ff629e90d8c3"
-        self.device_api_addr = 'https://sites.saveforest.cloud/device'
-        self.data_api_addr =  'https://sites.saveforest.cloud/data'
+        self.api_addr = 'https://smartcoffee.saveforest.cloud'
+        self.device_api_addr = self.api_addr + '/device'
+        self.data_api_addr =  self.api_addr + '/data'
         self.is_run = True
         self.is_send_data = False
         self.is_connected = False
+
+        self.session = SmartCoffeeSession()
+        self.roast = SmartCoffeeRoast()
 
         self.enose = Enose()
         self.enose.onPredictionDone(target=SmartCoffeeDevice.onEnosePredictionDone, args=(self,))
@@ -58,13 +85,17 @@ class SmartCoffeeDevice:
 
     def connect(self):
         payload = {
-                "param" : "connect",
-                "id" : self.device_id
-                }
+            "key" : "connect",
+            "id" : self.device_id
+        }
         r = requests.post(self.device_api_addr, json = payload)
 
         if(r.status_code == 200 and r.json()['status'] == 200):
             print("[SmartCoffeeDevice] Connected to " + r.url)
+            roastSession = r.json()["payload"]['roastSession']
+            self.session.fromJSON(roastSession)
+            if(self.session.roastId == None):
+                print("[SmartCoffeeDevice] No session")
         else:
             print("[SmartCoffeeDevice] connection to server error , status code : ", r.status_code)
             self.is_connected = False
@@ -72,9 +103,33 @@ class SmartCoffeeDevice:
         
         self.is_connected = True
         return True
+    
+    def getSession(self):
+        payload = {
+            "key" : "roast-session",
+            "id" : self.device_id
+        }
+        r = requests.get(self.device_api_addr, params = payload)
+
+        if(r.status_code == 200):
+            roastSession = r.json()['payload']['roastSession']
+            print("[SmartCoffeeDevice] Get session : ", roastSession)
+
+            self.session.fromJSON(roastSession)
+
+            if(roastSession['roastId'] != None):
+                roast = r.json()['payload']['roast']
+                print("[SmartCoffeeDevice] Get roast : ", roast)
+                self.roast.fromJSON(roast)
+            
+            return True
+        
+        else:
+            print("[SmartCoffeeDevice] Get roast session error : ", r)
+            return False
 
     def listenEvent(self):
-        r = requests.get(self.device_api_addr, params = {"param" : "event"}, timeout = self.LISTEN_TIMEOUT)
+        r = requests.get(self.device_api_addr, params = {"key" : "event"})
         if(r.status_code == 504):
             print("[SmartCoffeeDevice] listenEvent : Timeout, retrying")
         elif (r.status_code == 200):
@@ -94,13 +149,22 @@ class SmartCoffeeDevice:
 
     def handleEvent(self, event):
         try:
-            if(event["payload"]["event"]["param"] == "start-roast"):
+            ev = event["payload"]["event"]["key"]
+            if(ev == "start-roast"):
                 print("[SmartCoffeeDevice] handleEvent : Start roasting")
                 self.is_send_data = True
 
-            elif(event["payload"]["event"]["param"] == "stop-roast"):
+            elif(ev == "stop-roast"):
                 print("[SmartCoffeeDevice] handleEvent : Stop roasting")
                 self.is_send_data = False
+            
+            elif(ev == "create-session"):
+                print("[SmartCoffeeDevice] handleEvent : New session created")
+                self.getSession()
+
+            elif(ev == "finish-session"):
+                print("[SmartCoffeeDevice] handleEvent : session finished")
+                self.session.reset()
 
         except KeyError as e:
             if self.DEBUG:
@@ -115,34 +179,59 @@ class SmartCoffeeDevice:
             self.listenEvent()
 
     def sendDataRoutine(self):
-        adc = 20500
-
         while(self.is_run):
-            payload = {
-                "method" : "single",
-                "raw_datas" :{
-                    "roastId" : 0,
-                    "roastStatus" : 2,
-                    "time" : datetime.utcnow().isoformat(),
-                    "adc_mq135" : adc,
-                    "adc_mq136" : 3,
-                    "adc_mq137" : 13,
-                    "adc_mq138" : 23,
-                    "adc_mq2" : 53,
-                    "adc_mq3" : 53,
-                    "adc_tgs822" : 12,
-                    "adc_tgs2620" : 14,
-                    "temp" : 50,
-                    "humidity": 32.4,
-                }
-            }
-
             if(self.is_send_data):
-                print("[SmartCoffeeDevice] Send sensor data")
-                self.sendSensorData(payload)
-
-                adc = adc + randint(0, 200)
+                self.__sendDummy()
             
-            time.sleep(0.6)
+            time.sleep(0.1)
+    """
+    DUMMY
+    """
+    adc = 20500
+    status = 0
+    count = 0
 
+    def __sendDummy(self):
+        SmartCoffeeDevice.adc 
+        SmartCoffeeDevice.status
+        SmartCoffeeDevice.count
+
+        if(self.session.roastId == None or self.session.roastId < 1):
+            print("[SmartCoffeeDevice] invalid session id")
+            return
+        
+        SmartCoffeeDevice.count = SmartCoffeeDevice.count + 1
+
+        SmartCoffeeDevice.status = int(SmartCoffeeDevice.count / 10)
+
+        print(SmartCoffeeDevice.count)
+        print(SmartCoffeeDevice.count / 10)
+        print(SmartCoffeeDevice.status)
+
+        if(SmartCoffeeDevice.status > 4):
+            SmartCoffeeDevice.status = 4
+        
+        payload = {
+            "method" : "single",
+            "raw_datas" :{
+                "roastId" : self.session.roastId,
+                "roastStatus" : SmartCoffeeDevice.status,
+                "time" : datetime.utcnow().isoformat(),
+                "adc_mq135" : SmartCoffeeDevice.adc,
+                "adc_mq136" : 3,
+                "adc_mq137" : 13,
+                "adc_mq138" : 23,
+                "adc_mq2" : 53,
+                "adc_mq3" : 53,
+                "adc_tgs822" : 12,
+                "adc_tgs2620" : 14,
+                "temp" : 50,
+                "humidity": 32.4,
+            }
+        }
+
+        print("[SmartCoffeeDevice] Send sensor data")
+        self.sendSensorData(payload)
+
+        SmartCoffeeDevice.adc = SmartCoffeeDevice.adc + randint(0, 200)
     
