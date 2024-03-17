@@ -31,7 +31,7 @@ class SmartCoffeeSession:
         self.roastId = roastSession['roastId']
 
 class SmartCoffeeDevice:
-    def __init__(self) -> None:
+    def __init__(self, serial_port=None) -> None:
         self.device_id = "77f04f7b-0ec0-4ce7-b8e7-ff629e90d8c3"
         self.api_addr = 'https://smartcoffee.saveforest.cloud'
         self.device_api_addr = self.api_addr + '/device'
@@ -43,7 +43,7 @@ class SmartCoffeeDevice:
         self.session = SmartCoffeeSession()
         self.roast = SmartCoffeeRoast()
 
-        self.enose = Enose()
+        self.enose = Enose(port=serial_port)
         self.enose.onPredictionDone(target=SmartCoffeeDevice.onEnosePredictionDone, args=(self,))
         
         self.LISTEN_TIMEOUT = 10 #s
@@ -72,11 +72,11 @@ class SmartCoffeeDevice:
                 self.is_send_data = False
                 self.is_connected = False
                 self.is_run = False
+                print("[SmartCoffeeDevice] Stopping enose complete...")
+                self.enose.stop()
                 print("[SmartCoffeeDevice] Wait for thread to complete...")
                 self.send_data_thread.join()
                 self.listen_event_thread.join()
-                print("[SmartCoffeeDevice] Stopping enose complete...")
-                self.enose.stop()
                 print("[SmartCoffeeDevice] exit")
                 break
     
@@ -144,8 +144,8 @@ class SmartCoffeeDevice:
         else:
             print("[SmartCoffeeDevice] sendSensorData : unhandled")
 
-    def onEnosePredictionDone(self, data):
-        print("[SmartCoffeeDevice] Prediction done : ", data)
+    def onEnosePredictionDone(self, data, predictions):
+        print("[SmartCoffeeDevice] Prediction done : ", len(data), predictions)
 
     def handleEvent(self, event):
         try:
