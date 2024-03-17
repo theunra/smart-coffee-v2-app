@@ -144,8 +144,23 @@ class SmartCoffeeDevice:
         else:
             print("[SmartCoffeeDevice] sendSensorData : unhandled")
 
-    def onEnosePredictionDone(self, data, predictions):
-        print("[SmartCoffeeDevice] Prediction done : ", len(data), predictions)
+    def onEnosePredictionDone(self, datas, predictions):
+        print("[SmartCoffeeDevice] Prediction done : ", len(datas), predictions)
+        prediction_dict = {
+            "Unclass" : 99,
+            "Light" : 2,
+            "Medium" : 3,
+            "Dark" : 4,
+        }
+
+        
+        for data in datas:
+            data["roastId"] = self.session.roastId
+            data["roastId"] = prediction_dict[predictions[0]]
+
+        print(datas[0])
+        print(datas[1])
+        # self.sendDataBulk()
 
     def handleEvent(self, event):
         try:
