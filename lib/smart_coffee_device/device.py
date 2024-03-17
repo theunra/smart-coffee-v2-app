@@ -184,6 +184,14 @@ class SmartCoffeeDevice:
                 self.__sendDummy()
             
             time.sleep(0.1)
+
+    def sendDataBulk(self, datas):
+        payload = {
+            "method" : "bulk",
+            "raw_datas" : datas
+        }
+
+        self.sendSensorData(payload)
     """
     DUMMY
     """
