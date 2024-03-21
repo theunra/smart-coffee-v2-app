@@ -49,7 +49,7 @@ class Enose:
         t = datetime.now()
         data["time"] = str(t)
 
-        if(len(self.datas) * 8 > 100)   : #data is enough to classify
+        if(len(self.datas) * 4 >= 100)   : #data is enough to classify
             data_to_predict = self.jsonEnoseADCDataToArray(self.datas)
             predictions = self.classifier.predict(data_to_predict[0:100]) #predict 100 data
             # print(predictions)
@@ -65,13 +65,13 @@ class Enose:
         arr = []
         for d in datas:
             arr.append(d["adc_mq135"])
-            arr.append(d["adc_mq136"])
+            # arr.append(d["adc_mq136"])
             arr.append(d["adc_mq137"])
             arr.append(d["adc_mq138"])
-            arr.append(d["adc_mq2"])
+            # arr.append(d["adc_mq2"])
             arr.append(d["adc_mq3"])
-            arr.append(d["adc_tgs822"])
-            arr.append(d["adc_tgs2620"])
+            # arr.append(d["adc_tgs822"])
+            # arr.append(d["adc_tgs2620"])
         return arr
 
     def start(self):

@@ -253,4 +253,3 @@ class SmartCoffeeDevice:
         self.sendSensorData(payload)
 
         SmartCoffeeDevice.adc = SmartCoffeeDevice.adc + randint(0, 200)
-    
