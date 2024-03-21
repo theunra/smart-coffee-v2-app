@@ -153,14 +153,12 @@ class SmartCoffeeDevice:
             "Dark" : 4,
         }
 
-        
-        for data in datas:
-            data["roastId"] = self.session.roastId
-            data["roastId"] = prediction_dict[predictions[0]]
+        if self.is_send_data:
+            for data in datas:
+                data["roastId"] = self.session.roastId
+                data["roastStatus"] = prediction_dict[predictions[0]]
 
-        print(datas[0])
-        print(datas[1])
-        # self.sendDataBulk()
+            self.sendDataBulk(datas)
 
     def handleEvent(self, event):
         try:
@@ -194,6 +192,7 @@ class SmartCoffeeDevice:
             self.listenEvent()
 
     def sendDataRoutine(self):
+        return
         while(self.is_run):
             if(self.is_send_data):
                 self.__sendDummy()
