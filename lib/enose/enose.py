@@ -64,10 +64,19 @@ class Enose:
     def jsonEnoseADCDataToArray(self, datas : list):
         arr = []
         for d in datas:
-            arr.append(d["adc_mq135"])
+            # arr.append(d["adc_mq135"])
             # arr.append(d["adc_mq136"])
-            arr.append(d["adc_mq137"])
+            # arr.append(d["adc_mq137"])
+            # arr.append(d["adc_mq138"])
+            # arr.append(d["adc_mq2"])
+            # arr.append(d["adc_mq3"])
+            # arr.append(d["adc_tgs822"])
+            # arr.append(d["adc_tgs2620"])
+            
             arr.append(d["adc_mq138"])
+            # arr.append(d["adc_mq136"])
+            arr.append(d["adc_mq135"])
+            arr.append(d["adc_mq137"])
             # arr.append(d["adc_mq2"])
             arr.append(d["adc_mq3"])
             # arr.append(d["adc_tgs822"])

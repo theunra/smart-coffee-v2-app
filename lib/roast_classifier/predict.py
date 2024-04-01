@@ -55,10 +55,10 @@ class Predict:
         self.make_predictions(input_array)
         
         # kurangin indeks hasil prediksi
-        for pred in self.predictions:
-            out_arr.append(self.convert(self.convert_(pred) - 2))
-        self.predictions = out_arr
-        
+        # for pred in self.predictions:
+        #     out_arr.append(self.convert(self.convert_(pred) - 2))
+        # self.predictions = out_arr
+
         print("Predictions:", self.predictions)
 
         return self.predictions

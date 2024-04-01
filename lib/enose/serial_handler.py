@@ -26,6 +26,9 @@ class SerialHandler:
                 except json.decoder.JSONDecodeError as e:
                     print("[SerialHandler] JSONDecodeError serial data is not a valid json : " + str(payload))
                     return False
+                except UnicodeDecodeError as e:
+                    print("[SerialHandler] UnicodeDecodeError invalid bytes")
+                    return False
         
     def __write(self, payload):
         if(self.ser.writable()):
