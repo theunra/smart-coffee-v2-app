@@ -144,10 +144,10 @@ class SmartCoffeeDevice:
         else:
             print("[SmartCoffeeDevice] sendSensorData : unhandled")
 
-    def onEnosePredictionDone(self, datas, predictions):
-        print("[SmartCoffeeDevice] Prediction done : ", len(datas), predictions)
+    def onEnosePredictionDone(self, datas, prediction):
+        print("[SmartCoffeeDevice] Prediction done : ", len(datas), prediction)
         prediction_dict = {
-            "Unclass" : 99,
+            "Unclass" : 1,
             "Light" : 2,
             "Medium" : 3,
             "Dark" : 4,
@@ -156,7 +156,7 @@ class SmartCoffeeDevice:
         if self.is_send_data:
             for data in datas:
                 data["roastId"] = self.session.roastId
-                data["roastStatus"] = prediction_dict[predictions[0]]
+                data["roastStatus"] = prediction_dict[prediction]
 
             self.sendDataBulk(datas)
 
@@ -165,6 +165,7 @@ class SmartCoffeeDevice:
             ev = event["payload"]["event"]["key"]
             if(ev == "start-roast"):
                 print("[SmartCoffeeDevice] handleEvent : Start roasting")
+                self.enose.reset()
                 self.is_send_data = True
 
             elif(ev == "stop-roast"):
