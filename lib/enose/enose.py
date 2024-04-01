@@ -16,7 +16,24 @@ def testListenSerialData():
 
 
 class Enose:
-    def __init__(self, port = None) -> None:
+    def __init__(
+            self, port = None, 
+            classifier = Predict()
+            ) -> None:
+
+        self.getPort(port)
+
+        self.serialHandler = SerialHandler(port=self.port, baud=115200)
+        self.classifier = classifier
+
+        self.datas = [] # List of enose json data , each json has 8 adc sensor data
+
+        self.is_run = False
+
+        self.__onPredictionDone = None
+        self.__onPredictionDoneArgs = ()
+
+    def getPort(self, port):
         if(port == None):
             self.port = SerialHandler.findPort("ESP32")
             
@@ -27,37 +44,29 @@ class Enose:
         
         else:
             self.port = port
-            
-        
-        
-        self.serialHandler = SerialHandler(port=self.port, baud=115200)
-        self.classifier = Predict()
-
-        self.datas = [] # List of enose json data , each json has 8 adc sensor data
-
-        self.is_run = False
-
-        self.__onPredictionDone = None
-        self.__onPredictionDoneArgs = ()
 
     def onPredictionDone(self, target=None, args=()):
         self.__onPredictionDone = target
         self.__onPredictionDoneArgs = args
 
     def onReceiveSerialData(self, data):
+        # raise NotImplementedError
         #append time
         t = datetime.now()
         data["time"] = str(t)
 
-        if(len(self.datas) * 4 >= 100)   : #data is enough to classify
-            data_to_predict = self.jsonEnoseADCDataToArray(self.datas)
-            predictions = self.classifier.predict(data_to_predict[0:100]) #predict 100 data
-            # print(predictions)
+        # if(len(self.datas) * 4 >= 100)   : #data is enough to classify
+        #     data_to_predict = self.jsonEnoseADCDataToArray(self.datas)
+        #     prediction = self.classifier.predict(data_to_predict[0:100]) #predict 100 data
+        #     # print(prediction)
 
-            self.__onPredictionDone(*self.__onPredictionDoneArgs, self.datas, predictions)
+        #     self.__onPredictionDone(*self.__onPredictionDoneArgs, self.datas[0:10], prediction)
 
-            #clear data
-            self.datas.clear()
+        #     #clear data
+        #     # self.datas.clear()
+        #     self.datas = self.datas[10:100]
+        
+        self.classifier.predict(data)
         
         self.datas.append(data)
 
@@ -98,3 +107,7 @@ class Enose:
         self.is_run = False
         self.serialHandler.stopListening()
         print("[Enose] stop")
+
+    def reset(self):
+        self.classifier.resetPredict()
+        self.datas.clear()
