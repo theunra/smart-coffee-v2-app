@@ -50,7 +50,7 @@ class Enose:
         self.__onPredictionDoneArgs = args
 
     def onReceiveSerialData(self, data):
-        raise NotImplementedError
+        # raise NotImplementedError
         #append time
         t = datetime.now()
         data["time"] = str(t)
@@ -65,6 +65,8 @@ class Enose:
         #     #clear data
         #     # self.datas.clear()
         #     self.datas = self.datas[10:100]
+        
+        self.classifier.predict(data)
         
         self.datas.append(data)
 
